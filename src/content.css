@@ -1,0 +1,52 @@
+.lx-a11y-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+#lingxi_form :is(a, button, input, select, textarea, [tabindex]):focus {
+  outline: 3px solid #0a66c2 !important;
+  outline-offset: 2px !important;
+}
+
+#lingxi_form #form_tip > span {
+  color: #555 !important;
+}
+
+#lingxi_form #btn_clear,
+#lingxi_form [onclick*="clearInput"] {
+  color: #333 !important;
+  text-decoration: underline !important;
+}
+
+#lingxi_form .user-agreement a {
+  color: #005fcc !important;
+  text-decoration: underline !important;
+}
+
+#lingxi_form #button,
+#lingxi_form .submit-btn,
+#lingxi_form input[type="button"][onclick*="check_form_submit"],
+#lingxi_form button[onclick*="check_form_submit"] {
+  background: #006fd6 !important;
+  color: #fff !important;
+}
+
+#link-created-by-team,
+#link-powered-by-lingxi,
+#link-powered-by-lingxi > span,
+#link-report {
+  color: #555 !important;
+}
+
+.lx-a11y-error {
+  color: #b00020;
+  display: block;
+  margin: 4px 0;
+}

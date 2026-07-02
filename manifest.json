@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Lingxi Form Accessibility Patch",
+  "version": "0.1.0",
+  "description": "Improves screen reader and keyboard support on Lingxi form pages.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://ff.lingxi360.com/f*",
+        "https://lxi.me/*"
+      ],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

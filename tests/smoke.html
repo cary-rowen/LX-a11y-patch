@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Smoke</title>
+  <style>
+    #user-agreement-modal { display: none; }
+    #user-agreement-modal.open { display: block; }
+  </style>
+  <script>
+    document.addEventListener('focusin', event => {
+      if (event.target.id === 'other-entry-text') {
+        document.querySelector('#other-entry').checked = true;
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="content">
+    <h3 class="h3-head"><div class="title">&#27979;&#35797;&#34920;&#21333;</div></h3>
+    <form id="lingxi_form">
+      <ul class="list_display">
+        <li id="form_tip">
+          <span>&#24050;&#33258;&#21160;&#22635;&#20805;&#65292;<a id="btn_clear" onclick="window.cleared = true">&#28857;&#20987;&#28165;&#38500;</a></span>
+        </li>
+        <li>
+          <div class="control-group">
+            <label class="control-label">&#22995;&#21517; <span>*</span></label>
+            <div class="controls">
+              <input id="name" name="name" type="text" require="true">
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="control-group">
+            <label class="control-label">&#20837;&#21475; <span>*</span></label>
+            <div class="muted">&#39064;&#32452;&#35828;&#26126;&#65292;&#19981;&#24212;&#35813;&#25346;&#21040;&#20854;&#20182;&#36755;&#20837;&#26694;</div>
+            <div class="controls">
+              <label><input id="app" name="entry" type="radio" data-require="1"> APP <span class="errorTip">&#19981;&#24212;&#35813;&#20851;&#32852;&#21040;&#20854;&#20182;&#36755;&#20837;&#26694;</span></label>
+              <label><input id="other-entry" name="entry" type="radio" data-require="1"> &#20854;&#20182; <input id="other-entry-text" type="text" name="other_entry" placeholder="&#35831;&#34917;&#20805;&#35828;&#26126; &#24517;&#22635;" required><span class="errorTip">&#24517;&#22635;</span></label>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="control-group">
+            <label class="control-label">&#22791;&#27880;</label>
+            <div class="controls">
+              <input id="after-other" name="after_other" type="text" placeholder="&#24517;&#22635;" required>
+            </div>
+          </div>
+        </li>
+        <div class="text-center">
+          <input type="checkbox" id="user-agreement-checkbox" name="user-agreement-checkbox">
+          <span>&#25105;&#24050;&#38405;&#35835;&#24182;&#21516;&#24847;</span>
+          <a href="javascript:void(0)" onclick="document.querySelector('#user-agreement-modal').classList.add('open')">&#29992;&#25143;&#21327;&#35758;</a>
+          <input type="button" id="button" class="submit-btn" value="&#25552;&#20132;">
+        </div>
+      </ul>
+    </form>
+    <div class="footer">footer</div>
+  </div>
+  <div id="user-agreement-modal">
+    <h4>&#29256;&#26412;&#20449;&#24687;</h4>
+    <p>&#21327;&#35758;&#20869;&#23481;</p>
+    <a href="#close-modal" onclick="document.querySelector('#user-agreement-modal').classList.remove('open')">Close</a>
+  </div>
+</body>
+</html>
