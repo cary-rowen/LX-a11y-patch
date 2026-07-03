@@ -47,3 +47,7 @@ npm run package:chrome
 
 The upload zip is written to `dist/`. Store listing copy is in `STORE_LISTING.md`, and the privacy policy text is in `PRIVACY.md`.
 Chrome Web Store screenshots and promotional images are generated from a local synthetic demo form, not from any real Lingxi form submission page.
+
+## License
+
+MIT
