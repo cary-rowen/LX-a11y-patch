@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate extension
+        run: npm run validate
+
+      - name: Run smoke test
+        run: npm test
+
+      - name: Generate store assets
+        run: npm run assets:store
+
+      - name: Package extension
+        run: npm run package:chrome
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content manifest.json -Raw | ConvertFrom-Json).version
+          $zip = "dist/lingxi-form-a11y-patch-$version.zip"
+          gh release create "${{ github.ref_name }}" $zip --title "${{ github.ref_name }}" --notes "Release ${{ github.ref_name }}."
