@@ -378,6 +378,8 @@
       removeIdRefsByPrefix(control, 'aria-describedby', 'lx-a11y-error-');
       if (!invalid) {
         control.removeAttribute('aria-invalid');
+        removeControlDescription(control, 'error');
+        restoreControlErrorTip(control);
         return;
       }
 
@@ -385,19 +387,36 @@
       const tip = findControlErrorTip(control);
       const errorText = stripRequiredMarkers(tip && tip.textContent);
       if (errorText) {
-        if (errorText === cleanText(tip.textContent)) addIdRef(control, 'aria-describedby', ensureId(tip, 'error'));
-        else ensureControlDescription(control, 'error', errorText);
+        if (tip && errorText === cleanText(tip.textContent)) {
+          removeControlDescription(control, 'error');
+          addIdRef(control, 'aria-describedby', ensureId(tip, 'error'));
+        } else {
+          ensureControlDescription(control, 'error', errorText);
+        }
+      } else {
+        removeControlDescription(control, 'error');
       }
+      if (tip) hideControlErrorTip(control, tip);
       control.setAttribute('aria-invalid', 'true');
       invalidItems.add(group || control);
     });
 
     form.querySelectorAll('.control-group').forEach(group => {
       const options = Array.from(group.querySelectorAll(OPTION_SELECTOR));
+      const controls = group.querySelector('.controls');
+      if (!options.length) {
+        if (controls) {
+          controls.removeAttribute('aria-invalid');
+          removeIdRefsByPrefix(controls, 'aria-describedby', 'lx-a11y-group-error-');
+        }
+        removeGeneratedGroupError(group);
+        restoreGroupLabelErrorTips(group);
+        return;
+      }
+
       const invalidOptions = options
         .filter(option => option.classList.contains('errorInput') || option.classList.contains('border-error'));
       const groupErrorText = visibleGroupErrorText(group);
-      const controls = group.querySelector('.controls');
       options.forEach(option => {
         option.removeAttribute('aria-invalid');
         removeIdRefsByPrefix(option, 'aria-describedby', 'lx-a11y-group-error-');
@@ -592,6 +611,28 @@
     const group = control.closest('.control-group');
     const tips = group ? Array.from(group.querySelectorAll('.errorTip')).filter(isVisible) : [];
     return tips.length === 1 ? tips[0] : null;
+  }
+
+  function hideControlErrorTip(control, tip) {
+    tip.dataset.lxA11yControlHiddenFor = ensureId(control, 'control');
+    tip.setAttribute('aria-hidden', 'true');
+  }
+
+  function restoreControlErrorTip(control) {
+    if (!control.id) return;
+    const group = control.closest('.control-group');
+    const scope = group || control.parentElement || document;
+    scope.querySelectorAll(`.errorTip[data-lx-a11y-control-hidden-for="${CSS.escape(control.id)}"]`).forEach(tip => {
+      delete tip.dataset.lxA11yControlHiddenFor;
+      if (!tip.dataset.lxA11yGroupHidden) tip.removeAttribute('aria-hidden');
+    });
+  }
+
+  function removeControlDescription(control, prefix) {
+    const dataKey = `lxA11y${prefix[0].toUpperCase()}${prefix.slice(1)}Id`;
+    const description = control.dataset[dataKey] && document.getElementById(control.dataset[dataKey]);
+    if (description) description.remove();
+    delete control.dataset[dataKey];
   }
 
   function hasChoiceSelection(options) {

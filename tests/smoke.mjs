@@ -74,6 +74,7 @@ await page.locator('#button').click();
 await page.waitForTimeout(400);
 assert.equal(await axProperty('#other-entry-text', 'invalid'), 'true');
 assert.equal(await axDescription('#other-entry-text'), '请补充说明');
+assert.equal(await page.locator('#other-entry-text').evaluate(element => element.closest('label').querySelector('.errorTip').getAttribute('aria-hidden')), 'true');
 await page.locator('#other-entry-text').evaluate(element => element.classList.remove('errorInput'));
 await page.waitForTimeout(100);
 assert.equal(await page.locator('#lx-a11y-live-errors').textContent(), '');
@@ -125,6 +126,11 @@ await page.waitForTimeout(400);
 
 assert.equal(await page.locator('#name').getAttribute('aria-invalid'), 'true');
 assert.match(await page.locator('#name').getAttribute('aria-describedby'), /error/);
+assert.equal(await axDescription('#name'), 'required message');
+assert.equal(await page.locator('#name').evaluate(element => element.closest('.control-group').querySelector('.errorTip').getAttribute('aria-hidden')), 'true');
+assert.equal(await page.locator('#name').evaluate(element => element.closest('.control-group').querySelector('.lx-a11y-sr-only[id^="lx-a11y-error-"]') === null), true);
+assert.equal(await page.locator('#name').evaluate(element => element.closest('.control-group').querySelector('.controls').getAttribute('aria-invalid')), null);
+assert.equal(await page.locator('#name').evaluate(element => element.closest('.control-group').querySelector(':scope > .lx-a11y-error') === null), true);
 assert.match(await page.locator('#lx-a11y-live-errors').textContent(), /1/);
 
 await page.locator('a[href^="javascript"]').click();
