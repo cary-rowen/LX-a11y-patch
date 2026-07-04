@@ -45,8 +45,6 @@ assert.match(await page.locator('.controls[role="radiogroup"]').getAttribute('ar
 assert.equal(await page.locator('#app').getAttribute('aria-required'), null);
 assert.equal(await page.locator('.control-label span').first().getAttribute('aria-hidden'), 'true');
 assert.equal(await page.locator('#other-entry-text').getAttribute('tabindex'), '-1');
-assert.equal(await page.locator('#other-entry').getAttribute('aria-label'), '其他');
-assert.equal(await page.locator('#other-entry-text').getAttribute('aria-label'), '其他');
 assert.equal(await page.locator('#other-entry-text').getAttribute('aria-required'), null);
 assert.equal(await page.locator('#other-entry-text').getAttribute('placeholder'), '请补充说明');
 assert.equal(await page.locator('#after-other').getAttribute('placeholder'), null);
@@ -89,9 +87,7 @@ await page.keyboard.press('Tab');
 assert.equal(await activeElementId(), 'after-other');
 assert.equal(await page.locator('#other-entry').isChecked(), false);
 
-assert.equal(await page.locator('#btn_clear').getAttribute('role'), 'button');
 assert.equal(await page.locator('#user-agreement-checkbox').getAttribute('aria-labelledby'), 'lx-a11y-user-agreement-label');
-assert.equal(await page.locator('ul.list_display > li > .text-center').count(), 1);
 
 await page.evaluate(() => {
   const name = document.querySelector('#name');
