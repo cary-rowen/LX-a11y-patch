@@ -9,6 +9,10 @@
     #user-agreement-modal.open { display: block; }
   </style>
   <script>
+    function showAgreement() {
+      document.querySelector('#user-agreement-modal').classList.add('open');
+    }
+
     document.addEventListener('focusin', event => {
       if (event.target.id === 'other-entry-text') {
         document.querySelector('#other-entry').checked = true;
@@ -50,10 +54,19 @@
             </div>
           </div>
         </li>
+        <li>
+          <div class="control-group">
+            <label class="control-label">&#20559;&#22909; <span>*</span></label>
+            <div id="checkbox-controls" class="controls">
+              <label><input id="check-a" type="checkbox" data-require="1"> A</label>
+              <label><input id="check-b" type="checkbox" data-require="1"> B</label>
+            </div>
+          </div>
+        </li>
         <div class="text-center">
           <input type="checkbox" id="user-agreement-checkbox" name="user-agreement-checkbox">
           <span>&#25105;&#24050;&#38405;&#35835;&#24182;&#21516;&#24847;</span>
-          <a href="javascript:void(0)" onclick="document.querySelector('#user-agreement-modal').classList.add('open')">&#29992;&#25143;&#21327;&#35758;</a>
+          <a href="javascript:showAgreement()">&#29992;&#25143;&#21327;&#35758;</a>
           <input type="button" id="button" class="submit-btn" value="&#25552;&#20132;">
         </div>
       </ul>

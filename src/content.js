@@ -81,7 +81,10 @@
       const target = eventTargetElement(event.target);
       if (!target || !target.matches(OPTION_SELECTOR)) return;
       const form = document.querySelector(FORM_SELECTOR);
-      if (form && form.contains(target)) fixNestedOptionTextTabStops(form);
+      if (form && form.contains(target)) {
+        fixNestedOptionTextTabStops(form);
+        syncErrors();
+      }
     }, true);
   }
 
@@ -287,8 +290,17 @@
 
     form.querySelectorAll('.control-group').forEach(group => {
       const controls = group.querySelector('.controls');
-      if (controls && Array.from(group.querySelectorAll(OPTION_SELECTOR)).some(isRequired)) {
+      if (!controls) return;
+
+      if (!Array.from(group.querySelectorAll(OPTION_SELECTOR)).some(isRequired)) {
+        controls.removeAttribute('aria-required');
+        removeIdRefsByPrefix(controls, 'aria-describedby', 'lx-a11y-required-');
+      } else if (controls.getAttribute('role') === 'radiogroup') {
         controls.setAttribute('aria-required', 'true');
+        removeIdRefsByPrefix(controls, 'aria-describedby', 'lx-a11y-required-');
+      } else {
+        controls.removeAttribute('aria-required');
+        addIdRef(controls, 'aria-describedby', ensureGroupRequiredHint(group).id);
       }
     });
   }
@@ -384,36 +396,35 @@
       const options = Array.from(group.querySelectorAll(OPTION_SELECTOR));
       const invalidOptions = options
         .filter(option => option.classList.contains('errorInput') || option.classList.contains('border-error'));
+      const groupErrorText = visibleGroupErrorText(group);
       const controls = group.querySelector('.controls');
-      options.filter(option => !invalidOptions.includes(option)).forEach(option => {
+      options.forEach(option => {
         option.removeAttribute('aria-invalid');
         removeIdRefsByPrefix(option, 'aria-describedby', 'lx-a11y-group-error-');
       });
-      if (!invalidOptions.length || !controls) {
+      if ((!invalidOptions.length && !groupErrorText) || !controls || hasChoiceSelection(options)) {
         if (controls) {
           controls.removeAttribute('aria-invalid');
           removeIdRefsByPrefix(controls, 'aria-describedby', 'lx-a11y-group-error-');
         }
+        removeGeneratedGroupError(group);
+        restoreGroupLabelErrorTips(group);
         return;
       }
 
-      const error = ensureGroupError(group);
+      const error = ensureGroupError(group, groupErrorText);
       addIdRef(controls, 'aria-describedby', error.id);
       controls.setAttribute('aria-invalid', 'true');
 
-      group.querySelectorAll('label .errorTip').forEach(tip => {
-        tip.setAttribute('aria-hidden', 'true');
-      });
-
-      invalidOptions.forEach(option => {
-        option.setAttribute('aria-invalid', 'true');
-      });
+      hideGroupLabelErrorTips(group);
 
       invalidItems.add(group);
     });
 
     if (submitAttempted && invalidItems.size) {
       live.textContent = `\u8868\u5355\u6709 ${invalidItems.size} \u5904\u9700\u8981\u4fee\u6b63\u3002\u8bf7\u68c0\u67e5\u5f53\u524d\u5b57\u6bb5\u6216\u9898\u7ec4\u7684\u9519\u8bef\u63d0\u793a\u3002`;
+    } else if (submitAttempted) {
+      live.textContent = '';
     }
   }
 
@@ -495,7 +506,10 @@
 
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
+    if (!focusable.includes(document.activeElement)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+    } else if (event.shiftKey && document.activeElement === first) {
       event.preventDefault();
       last.focus();
     } else if (!event.shiftKey && document.activeElement === last) {
@@ -504,20 +518,61 @@
     }
   }
 
-  function ensureGroupError(group) {
+  function ensureGroupError(group, text) {
     let error = group.querySelector(':scope > .lx-a11y-error');
-    if (error) return error;
+    if (error) {
+      if (text) error.textContent = text;
+      return error;
+    }
 
-    const text = cleanText(group.querySelector('.errorTip') && group.querySelector('.errorTip').textContent) || '\u6b64\u9898\u9700\u8981\u586b\u5199';
     error = document.createElement('span');
     error.className = 'lx-a11y-error';
     error.id = uniqueId('group-error');
-    error.textContent = text;
+    error.textContent = text || cleanText(group.querySelector('.errorTip') && group.querySelector('.errorTip').textContent) || '\u6b64\u9898\u9700\u8981\u586b\u5199';
 
     const question = group.querySelector('.control-label');
     if (question) question.after(error);
     else group.prepend(error);
     return error;
+  }
+
+  function removeGeneratedGroupError(group) {
+    const error = group.querySelector(':scope > .lx-a11y-error');
+    if (error) error.remove();
+  }
+
+  function visibleGroupErrorText(group) {
+    const tip = Array.from(group.querySelectorAll('.errorTip')).find(isVisible);
+    return stripRequiredMarkers(tip && tip.textContent);
+  }
+
+  function hideGroupLabelErrorTips(group) {
+    group.querySelectorAll('label .errorTip').forEach(tip => {
+      tip.dataset.lxA11yGroupHidden = 'true';
+      tip.setAttribute('aria-hidden', 'true');
+    });
+  }
+
+  function restoreGroupLabelErrorTips(group) {
+    group.querySelectorAll('label .errorTip[data-lx-a11y-group-hidden="true"]').forEach(tip => {
+      tip.removeAttribute('aria-hidden');
+      delete tip.dataset.lxA11yGroupHidden;
+    });
+  }
+
+  function ensureGroupRequiredHint(group) {
+    let hint = group.querySelector(':scope > .lx-a11y-required');
+    if (hint) return hint;
+
+    hint = document.createElement('span');
+    hint.className = 'lx-a11y-sr-only lx-a11y-required';
+    hint.id = uniqueId('required');
+    hint.textContent = '\u5fc5\u586b';
+
+    const question = group.querySelector('.control-label');
+    if (question) question.after(hint);
+    else group.prepend(hint);
+    return hint;
   }
 
   function findControlErrorTip(control) {
@@ -537,6 +592,10 @@
     const group = control.closest('.control-group');
     const tips = group ? Array.from(group.querySelectorAll('.errorTip')).filter(isVisible) : [];
     return tips.length === 1 ? tips[0] : null;
+  }
+
+  function hasChoiceSelection(options) {
+    return options.some(option => option.checked);
   }
 
   function addUsefulPlaceholderDescription(control) {

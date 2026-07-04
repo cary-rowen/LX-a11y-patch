@@ -42,6 +42,21 @@ assert.equal(await page.locator('label[for="name"]').count(), 1);
 assert.equal(await page.locator('.controls[role="radiogroup"]').count(), 1);
 assert.equal(await page.locator('.controls[role="radiogroup"]').getAttribute('aria-required'), 'true');
 assert.match(await page.locator('.controls[role="radiogroup"]').getAttribute('aria-describedby'), /group-help/);
+assert.equal(await page.locator('#checkbox-controls').getAttribute('role'), 'group');
+assert.equal(await page.locator('#checkbox-controls').getAttribute('aria-required'), null);
+assert.match(await page.locator('#checkbox-controls').getAttribute('aria-describedby'), /required/);
+await page.locator('#check-a').evaluate(element => {
+  element.insertAdjacentHTML('afterend', '<span class="errorTip">请选择一项</span>');
+  document.querySelector('#button').click();
+});
+await page.waitForTimeout(400);
+assert.equal(await page.locator('#checkbox-controls').getAttribute('aria-invalid'), 'true');
+await page.locator('#check-b').check();
+await page.waitForTimeout(100);
+assert.equal(await page.locator('#checkbox-controls').getAttribute('aria-invalid'), null);
+assert.equal(await page.locator('#checkbox-controls').evaluate(element => element.closest('.control-group').querySelector(':scope > .lx-a11y-error') === null), true);
+await page.locator('#app').check();
+await page.waitForTimeout(100);
 assert.equal(await page.locator('#app').getAttribute('aria-required'), null);
 assert.equal(await page.locator('.control-label span').first().getAttribute('aria-hidden'), 'true');
 assert.equal(await page.locator('#other-entry-text').getAttribute('tabindex'), '-1');
@@ -60,11 +75,22 @@ await page.waitForTimeout(400);
 assert.equal(await axProperty('#other-entry-text', 'invalid'), 'true');
 assert.equal(await axDescription('#other-entry-text'), '请补充说明');
 await page.locator('#other-entry-text').evaluate(element => element.classList.remove('errorInput'));
+await page.waitForTimeout(100);
+assert.equal(await page.locator('#lx-a11y-live-errors').textContent(), '');
 
 await page.locator('#app').focus();
 await page.keyboard.press('Tab');
 assert.equal(await activeElementId(), 'after-other');
 assert.equal(await page.locator('#other-entry').isChecked(), false);
+
+await page.locator('#app').evaluate(element => element.classList.add('errorInput'));
+await page.locator('#other-entry').check();
+await page.waitForTimeout(100);
+assert.equal(await page.locator('#app').getAttribute('aria-invalid'), null);
+assert.equal(await page.locator('.controls[role="radiogroup"]').getAttribute('aria-invalid'), null);
+await page.locator('#app').check();
+await page.waitForTimeout(100);
+assert.equal(await axProperty('#app', 'invalid'), 'false');
 
 await page.locator('#after-other').focus();
 await page.keyboard.press('Shift+Tab');
@@ -105,5 +131,7 @@ await page.locator('a[href^="javascript"]').click();
 await page.waitForTimeout(100);
 assert.equal(await page.locator('#user-agreement-modal').getAttribute('role'), 'dialog');
 assert.equal(await page.locator('#user-agreement-modal').getAttribute('aria-modal'), 'true');
+await page.keyboard.press('Shift+Tab');
+assert.equal(await page.locator('#user-agreement-modal').evaluate(dialog => dialog.contains(document.activeElement)), true);
 
 await browser.close();
